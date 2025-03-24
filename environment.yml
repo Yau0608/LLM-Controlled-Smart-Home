@@ -1,0 +1,17 @@
+name: voice_command
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pytorch
+  - cpuonly
+  - pip=22.3.1
+  - pip:
+    - openai-whisper>=20230918
+    - pyaudio>=0.2.13
+    - keyboard>=0.13.5
+    - pyperclip>=1.8.2
+    - requests>=2.28.0
+    - homeassistant-api>=4.0.0 
