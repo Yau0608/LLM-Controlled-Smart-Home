@@ -14,7 +14,7 @@ class LLMHandler:
     def __init__(self, debug_mode=False):
         self.base_dir = Path(__file__).parent
         self.debug_mode = debug_mode
-        self.home_control = SmartHomeControl("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhZDBhYzc2N2MxZmY0YTY4YjY0Zjc5M2JmOTA0Y2IyMSIsImlhdCI6MTc0MjE5ODc2NCwiZXhwIjoyMDU3NTU4NzY0fQ.e4fsrfHSNlWbI-HLB2nAQv8HhdXk2SFu8nJRcOtaJj4")
+        self.home_control = SmartHomeControl("API")
         self.system_prompt = """You are a smart home control assistant. You control a WiZ RGBW Tunable light.
 
     IMPORTANT: When responding to light control requests, ALWAYS use one of these EXACT command formats:
