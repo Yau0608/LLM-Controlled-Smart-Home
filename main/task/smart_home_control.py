@@ -20,7 +20,15 @@ class SmartHomeControl:
          - Set color: control_light("wiz", "on", brightness=100, color=(240,100))  # Blue
          - Turn off: control_light("wiz", "off")
     
-    2. Status Monitoring
+    2. TV Control (entity_id: remote.4ktv_jup)
+       Methods:
+       - control_tv(action="on"|"off")
+         * action: "on" or "off"
+         Examples:
+         - Turn on: control_tv("on")
+         - Turn off: control_tv("off")
+
+    3. Status Monitoring
        Methods:
        - get_status()
          Returns current state of the WiZ light including:
@@ -43,6 +51,7 @@ class SmartHomeControl:
         
         # Store the entity ID for easy reference
         self.wiz_entity_id = "light.wiz_rgbw_tunable_bd2b10"
+        self.tv_entity_id = "remote.4ktv_jup"
     
     def control_light(self, light_name, state, brightness=None, color=None):
         """
@@ -109,6 +118,39 @@ class SmartHomeControl:
         except Exception as e:
             return f"Error controlling {light_name}: {str(e)}"
 
+    def control_tv(self, action):
+        """
+        Control the TV
+        
+        Args:
+            action (str): "on" or "off"
+        
+        Returns:
+            str: Status message
+        """
+        try:
+            if action.lower() == "on":
+                self.client.request(
+                    method="post",
+                    path="services/remote/turn_on",
+                    json={"entity_id": self.tv_entity_id}
+                )
+                return f"Turned on TV"
+            
+            elif action.lower() == "off":
+                self.client.request(
+                    method="post",
+                    path="services/remote/turn_off",
+                    json={"entity_id": self.tv_entity_id}
+                )
+                return f"Turned off TV"
+            
+            else:
+                return f"Unknown TV action: {action}"
+                
+        except Exception as e:
+            return f"Error controlling TV: {str(e)}"
+
     def get_status(self):
         """
         Get current status of the WiZ light
@@ -136,7 +178,7 @@ class SmartHomeControl:
 
 # Test the controls for the WiZ light only
 def test_controls():
-    TOKEN = "API"
+    TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhZDBhYzc2N2MxZmY0YTY4YjY0Zjc5M2JmOTA0Y2IyMSIsImlhdCI6MTc0MjE5ODc2NCwiZXhwIjoyMDU3NTU4NzY0fQ.e4fsrfHSNlWbI-HLB2nAQv8HhdXk2SFu8nJRcOtaJj4"
     home = SmartHomeControl(TOKEN)
     
     # Test WiZ light controls
