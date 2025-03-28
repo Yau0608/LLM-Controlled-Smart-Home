@@ -14,8 +14,8 @@ class LLMHandler:
     def __init__(self, debug_mode=False):
         self.base_dir = Path(__file__).parent
         self.debug_mode = debug_mode
-        self.home_control = SmartHomeControl("API")
-        self.system_prompt = """You are a smart home control assistant. You control a WiZ RGBW Tunable light.
+        self.home_control = SmartHomeControl("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhZDBhYzc2N2MxZmY0YTY4YjY0Zjc5M2JmOTA0Y2IyMSIsImlhdCI6MTc0MjE5ODc2NCwiZXhwIjoyMDU3NTU4NzY0fQ.e4fsrfHSNlWbI-HLB2nAQv8HhdXk2SFu8nJRcOtaJj4")
+        self.system_prompt = """You are a smart home control assistant. You control a WiZ RGBW Tunable light and a 4K TV.
 
     IMPORTANT: When responding to light control requests, ALWAYS use one of these EXACT command formats:
     
@@ -38,14 +38,17 @@ class LLMHandler:
     
     Use ONLY colons (:) to separate parts, never use square brackets [] or slashes /.
     
-    Examples of correct responses:
-    - "I'll turn off the light. LIGHT:wiz:OFF"
-    - "Setting brightness to 75%. LIGHT:wiz:ON:brightness=75"
-    - "Changing to blue at 50% brightness. LIGHT:wiz:ON:brightness=50:color=240,100"
-    - "Setting to red color. LIGHT:wiz:ON:brightness=50:color=0,100"
-    - "Making it green. LIGHT:wiz:ON:brightness=50:color=120,100"
+    For multiple sequential light changes or animations, include multiple commands in your response, with each command starting with LIGHT:wiz:
+    Example for changing colors in sequence:
+    "I'll change the light through red, green, and blue. LIGHT:wiz:ON:brightness=50:color=0,100 LIGHT:wiz:ON:brightness=50:color=120,100 LIGHT:wiz:ON:brightness=50:color=240,100"
     
-    Always include exactly ONE command in your response, and make sure it contains "wiz" as the light name.
+    For TV control, use these command formats:
+    - TV:ON - Turn on the TV
+    - TV:OFF - Turn off the TV
+    
+    Examples of correct TV commands:
+    - "I'll turn on the TV. TV:ON"
+    - "I'll turn off the TV. TV:OFF"
     
     For status requests, use: STATUS:ALL
     
@@ -67,7 +70,7 @@ class LLMHandler:
             formatted_prompt = f"{self.system_prompt}\n\nUser: {prompt}\nAssistant:"
             
             data = {
-                "model": "llama3.2:3b",
+                "model": "gemma3:12b",
                 "prompt": formatted_prompt,
                 "max_tokens": max_tokens,
                 "system": self.system_prompt,
@@ -91,6 +94,8 @@ class LLMHandler:
             for line in response_text.splitlines():
                 if "LIGHT:" in line:
                     commands.append(("light", line))
+                elif "TV:" in line:
+                    commands.append(("tv", line))
                 elif "STATUS:" in line:
                     commands.append(("status", line))
             
@@ -275,6 +280,9 @@ class LLMHandler:
                         
                         return self.home_control.control_light("wiz", "on", brightness, color)
             
+            elif command_type == "tv":
+                return self.home_control.control_tv(command_text)
+            
             elif command_type == "status":
                 return self.home_control.get_status()
             
@@ -296,19 +304,73 @@ class LLMHandler:
                 # Find all command patterns
                 commands = []
                 
-                # Check for light commands
+                # Check for light commands - split by comma if multiple commands
                 if "LIGHT:" in response_text:
-                    commands.append(("light", response_text))
+                    # Split multiple commands that might be separated by commas
+                    light_commands = []
                     
+                    # First find all occurrences of "LIGHT:"
+                    start_indices = []
+                    current_index = 0
+                    while True:
+                        index = response_text.find("LIGHT:", current_index)
+                        if index == -1:
+                            break
+                        start_indices.append(index)
+                        current_index = index + 1
+                    
+                    # Extract each command from start_indices
+                    for i in range(len(start_indices)):
+                        start = start_indices[i]
+                        # If this is the last command, the end is the end of the string
+                        if i == len(start_indices) - 1:
+                            command_text = response_text[start:]
+                        else:
+                            # Otherwise, the end is the start of the next command
+                            end = start_indices[i+1]
+                            command_text = response_text[start:end]
+                        
+                        # Clean up the command text (remove trailing commas if present)
+                        command_text = command_text.rstrip(',').strip()
+                        light_commands.append(("light", command_text))
+                    
+                    commands.extend(light_commands)
+                    
+                # Check for TV commands
+                if "TV:" in response_text:
+                    if "TV:ON" in response_text:
+                        commands.append(("tv", "on"))
+                    elif "TV:OFF" in response_text:
+                        commands.append(("tv", "off"))
+                
                 # Check for status commands
                 if "STATUS:" in response_text:
                     commands.append(("status", response_text))
                 
                 # Process all found commands
-                for command in commands:
+                for i, command in enumerate(commands):
                     try:
-                        result = self.execute_command(command)
+                        command_type, command_text = command
+                        
+                        # Handle different command types
+                        if command_type == "light":
+                            result = self.execute_command((command_type, command_text))
+                        elif command_type == "tv":
+                            result = self.home_control.control_tv(command_text)
+                        elif command_type == "status":
+                            result = self.execute_command((command_type, command_text))
+                        else:
+                            result = f"Unknown command type: {command_type}"
+                            
                         results.append(result)
+                        
+                        # Add a delay between commands if there are multiple
+                        if len(commands) > 1:
+                            import time
+                            print(f"Command {i+1} of {len(commands)} completed: {result}")
+                            if i < len(commands) - 1:
+                                time.sleep(2)  # 2-second delay between commands
+                            
                     except Exception as e:
                         self.log(f"Error executing command {command}: {e}")
             
