@@ -14,51 +14,53 @@ class LLMHandler:
     def __init__(self, debug_mode=False):
         self.base_dir = Path(__file__).parent
         self.debug_mode = debug_mode
-        self.home_control = SmartHomeControl("API")
+        self.home_control = SmartHomeControl("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhZDBhYzc2N2MxZmY0YTY4YjY0Zjc5M2JmOTA0Y2IyMSIsImlhdCI6MTc0MjE5ODc2NCwiZXhwIjoyMDU3NTU4NzY0fQ.e4fsrfHSNlWbI-HLB2nAQv8HhdXk2SFu8nJRcOtaJj4")
         self.system_prompt = """You are a smart home control assistant. You control a WiZ RGBW Tunable light and a 4K TV.
 
-    IMPORTANT: When responding to control requests, ALWAYS use clear command formatting:
+IMPORTANT: For general conversation or questions without specific control requests (like "hello" or "how are you"), respond naturally WITHOUT including any commands.
+
+Only when the user wants to control devices or check status, use the following command formatting:
     
-    1. First provide your natural language response
-    2. Then add a line break
-    3. Then provide commands on separate lines
+1. First provide your natural language response
+2. Then add a line break
+3. Then provide commands on separate lines
     
-    Light control command formats:
-    - LIGHT:wiz:OFF
-    - LIGHT:wiz:ON:brightness=75
-    - LIGHT:wiz:ON:brightness=50:color=240,100
+Light control command formats:
+- LIGHT:wiz:OFF
+- LIGHT:wiz:ON:brightness=75
+- LIGHT:wiz:ON:brightness=50:color=240,100
     
-    Color format is HSL with hue (0-360) and saturation (0-100) values separated by a comma.
-    Common colors:
-    - Red: color=0,100
-    - Green: color=120,100
-    - Blue: color=240,100
-    - Yellow: color=60,100
-    - Purple: color=270,100
-    - Orange: color=30,100
-    - Pink: color=300,100
+Color format is HSL with hue (0-360) and saturation (0-100) values separated by a comma.
+Common colors:
+- Red: color=0,100
+- Green: color=120,100
+- Blue: color=240,100
+- Yellow: color=60,100
+- Purple: color=270,100
+- Orange: color=30,100
+- Pink: color=300,100
     
-    TV control command formats:
-    - TV:ON
-    - TV:OFF
+TV control command formats:
+- TV:ON
+- TV:OFF
     
-    For status requests, use:
-    - STATUS:ALL
+For status requests, use:
+- STATUS:ALL
     
-    Example of correct response format:
-    "I'll turn on the light to a nice blue color and turn on the TV.
+Example of correct response format:
+"I'll turn on the light to a nice blue color and turn on the TV.
     
-    LIGHT:wiz:ON:brightness=75:color=240,100
-    TV:ON"
+LIGHT:wiz:ON:brightness=75:color=240,100
+TV:ON"
     
-    For multiple light colors in sequence, put each command on its own line:
-    "I'll create a rainbow effect with the lights.
+For multiple light colors in sequence, put each command on its own line:
+"I'll create a rainbow effect with the lights.
     
-    LIGHT:wiz:ON:brightness=50:color=0,100
-    LIGHT:wiz:ON:brightness=50:color=120,100
-    LIGHT:wiz:ON:brightness=50:color=240,100"
+LIGHT:wiz:ON:brightness=50:color=0,100
+LIGHT:wiz:ON:brightness=50:color=120,100
+LIGHT:wiz:ON:brightness=50:color=240,100"
     
-    Always include a natural language response first, followed by the commands on separate lines."""
+Always include a natural language response first, followed by the commands on separate lines."""
 
     def log(self, message):
         """Print debug messages only if debug mode is enabled"""
@@ -75,7 +77,7 @@ class LLMHandler:
             formatted_prompt = f"{self.system_prompt}\n\nUser: {prompt}\nAssistant:"
             
             data = {
-                "model": "gemma3:12b",
+                "model": "llama3.1:8b",
                 "prompt": formatted_prompt,
                 "max_tokens": max_tokens,
                 "system": self.system_prompt,

@@ -60,7 +60,7 @@ sudo apt update && sudo apt install ffmpeg
 
 ### 6. Install other required packages
 ```bash
-pip install pyaudio keyboard pyperclip requests homeassistant-api
+pip install pyaudio keyboard pyperclip requests homeassistant-api flask
 ```
 
 Alternatively, you can use the provided requirements.txt file:
@@ -74,7 +74,12 @@ Follow instructions at: https://ollama.com/download
 ### 8. Pull the required model
 After installing Ollama, run:
 ```bash
-ollama pull llama3.2:3b
+ollama pull llama3:8b
+```
+
+For GPU users with limited VRAM, use a smaller model such as:
+```bash
+ollama pull gemma2:7b 
 ```
 
 ### 9. Configure Home Assistant
@@ -87,6 +92,17 @@ cd main/core
 # Start the application
 python run.py
 ```
+
+### 11. Mobile Interface (NEW!)
+You can now control your smart home from your phone's browser:
+```bash
+# Navigate to project directory
+cd main/core
+# Start the mobile web interface
+python run_mobile.py
+```
+Then access the displayed URL from any phone on the same WiFi network.
+See `main/mobile_interface.md` for detailed instructions.
 
 ## Troubleshooting
 

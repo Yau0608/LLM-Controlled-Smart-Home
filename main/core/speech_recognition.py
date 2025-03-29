@@ -61,3 +61,29 @@ class SpeechRecognizer:
         print("Text has been copied to clipboard and saved to latest_transcription.txt!")
         return transcribed_text 
 
+    def transcribe_file(self, audio_file_path):
+        """
+        Transcribe an existing audio file
+        
+        Args:
+            audio_file_path (str): Path to the audio file to transcribe
+            
+        Returns:
+            str: The transcribed text
+        """
+        try:
+            print(f"Transcribing file: {audio_file_path}")
+            result = self.model.transcribe(audio_file_path, language="en")
+            transcribed_text = result['text']
+            
+            # Save to file and clipboard for consistency
+            with open("latest_transcription.txt", "w", encoding='utf-8') as f:
+                f.write(transcribed_text)
+            
+            print(f"Transcription complete: {transcribed_text}")
+            return transcribed_text
+            
+        except Exception as e:
+            print(f"Error transcribing file: {e}")
+            return f"Error during transcription: {str(e)}"
+
