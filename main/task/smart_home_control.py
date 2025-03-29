@@ -178,7 +178,7 @@ class SmartHomeControl:
 
 # Test the controls for the WiZ light only
 def test_controls():
-    TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhZDBhYzc2N2MxZmY0YTY4YjY0Zjc5M2JmOTA0Y2IyMSIsImlhdCI6MTc0MjE5ODc2NCwiZXhwIjoyMDU3NTU4NzY0fQ.e4fsrfHSNlWbI-HLB2nAQv8HhdXk2SFu8nJRcOtaJj4"
+    TOKEN = "API"
     home = SmartHomeControl(TOKEN)
     
     # Test WiZ light controls
